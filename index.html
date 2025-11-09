@@ -3,71 +3,127 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Farmacia - Catálogo de Productos</title>
+<title>🥦 Verdulería Online - Productos Frescos</title>
+<meta name="description" content="Consulta precios y stock de frutas y verduras frescas actualizados automáticamente desde Google Sheets.">
+<link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/415/415733.png">
+
 <style>
+  /* 🌿 PALETA DE COLORES VERDULERÍA */
+  :root {
+    --verde-principal: #3fa34d;
+    --verde-oscuro: #2c7031;
+    --beige: #fdf6ec;
+    --texto: #333;
+  }
+
   body {
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Poppins', sans-serif;
     margin: 0;
     padding: 0;
-    background: #f6f8fa;
+    background: var(--beige);
+    color: var(--texto);
   }
+
   header {
-    background: #007bff;
+    background: linear-gradient(90deg, var(--verde-oscuro), var(--verde-principal));
     color: white;
-    padding: 20px;
     text-align: center;
+    padding: 25px 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
   }
+
+  header h1 {
+    font-size: 2rem;
+    margin: 0;
+  }
+
+  header p {
+    margin: 5px 0 0;
+    font-weight: 300;
+  }
+
   #search {
     display: block;
-    margin: 20px auto;
-    padding: 10px;
-    width: 80%;
-    max-width: 400px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
+    margin: 25px auto;
+    padding: 10px 15px;
+    width: 85%;
+    max-width: 420px;
+    border-radius: 10px;
+    border: 2px solid var(--verde-principal);
+    font-size: 16px;
+    outline: none;
   }
+
   .grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 20px;
     padding: 20px;
   }
+
   .card {
     background: white;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 15px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
     overflow: hidden;
-    transition: transform 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
-  .card:hover { transform: scale(1.02); }
+
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+  }
+
   .card img {
     width: 100%;
     height: 180px;
     object-fit: cover;
   }
+
   .info {
     padding: 15px;
-    text-align: left;
   }
-  .info h3 { margin: 0 0 8px; color: #007bff; }
-  .info p { margin: 5px 0; }
-  .price { font-weight: bold; color: #28a745; }
-  .stock { font-weight: bold; }
-  .out { color: red; }
+
+  .info h3 {
+    color: var(--verde-oscuro);
+    margin: 0 0 10px;
+    font-size: 20px;
+  }
+
+  .info p {
+    margin: 4px 0;
+    font-size: 15px;
+  }
+
+  .price {
+    color: #d35400;
+    font-weight: bold;
+  }
+
+  .stock {
+    font-weight: bold;
+    color: var(--verde-principal);
+  }
+
+  .out {
+    color: red;
+  }
+
   .category {
     display: inline-block;
-    margin-top: 5px;
-    padding: 4px 8px;
-    background: #e9ecef;
+    background: var(--verde-principal);
+    color: white;
+    padding: 3px 8px;
     border-radius: 5px;
     font-size: 13px;
-    color: #555;
+    margin-top: 8px;
   }
+
   footer {
-    background: #007bff;
+    background: var(--verde-oscuro);
     color: white;
     text-align: center;
-    padding: 10px;
+    padding: 15px;
     font-size: 14px;
   }
 </style>
@@ -75,19 +131,19 @@
 <body>
 
 <header>
-  <h1>💊 Farmacia Online</h1>
-  <p>Consulta precios y stock actualizados automáticamente</p>
+  <h1>🥦 Verdulería Online</h1>
+  <p>Frutas y verduras frescas con precios actualizados automáticamente</p>
 </header>
 
-<input type="text" id="search" placeholder="🔍 Buscar producto...">
+<input type="text" id="search" placeholder="🔍 Buscar producto (ej: manzana, lechuga, tomate...)">
 
 <div class="grid" id="productos"></div>
 
-<footer>© 2025 Farmacia Online — Datos actualizados desde Google Sheets</footer>
+<footer>© 2025 Verdulería Online — Datos actualizados desde Google Sheets</footer>
 
 <script>
 const SHEET_ID = "137Cd2zzWFgsIreJreokVw-QAPFTZqPSLyOdvBeHuquQ";
-const SHEET_NAME = "Hoja1";
+const SHEET_NAME = "Hoja1"; // Cambiá si tu hoja tiene otro nombre
 const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
 
 async function cargarProductos() {
@@ -95,7 +151,6 @@ async function cargarProductos() {
     const res = await fetch(URL);
     const text = await res.text();
     const json = JSON.parse(text.substr(47).slice(0, -2));
-
     const contenedor = document.getElementById("productos");
     contenedor.innerHTML = "";
 
@@ -104,10 +159,10 @@ async function cargarProductos() {
       const precio = row.c[1]?.v || "—";
       const stock = row.c[2]?.v ?? "—";
       const descripcion = row.c[3]?.v || "";
-      const imagen = row.c[4]?.v && row.c[4].v !== "[URL]" ? row.c[4].v : "https://via.placeholder.com/400x200?text=Sin+imagen";
+      const imagen = row.c[4]?.v && row.c[4].v !== "[URL]" ? row.c[4].v : "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80";
       const categoria = row.c[5]?.v || "";
 
-      const disponible = stock <= 0 || stock === "0" ? "out" : "";
+      const agotado = stock <= 0 || stock === "0" ? "out" : "";
 
       const card = `
         <div class="card">
@@ -115,7 +170,7 @@ async function cargarProductos() {
           <div class="info">
             <h3>${producto}</h3>
             <p class="price">$${precio}</p>
-            <p class="stock ${disponible}">${stock > 0 ? "En stock: " + stock : "Agotado"}</p>
+            <p class="stock ${agotado}">${stock > 0 ? "Disponible: " + stock + " kg" : "Agotado"}</p>
             ${descripcion ? `<p>${descripcion}</p>` : ""}
             ${categoria ? `<span class="category">${categoria}</span>` : ""}
           </div>
@@ -124,7 +179,7 @@ async function cargarProductos() {
       contenedor.innerHTML += card;
     });
 
-    // Buscador en tiempo real
+    // Buscador
     const input = document.getElementById("search");
     input.addEventListener("input", e => {
       const term = e.target.value.toLowerCase();
