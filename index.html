@@ -142,77 +142,61 @@
 <footer>© 2025 Verdulería Online — Datos actualizados desde Google Sheets</footer>
 
 <script>
-  const SHEET_ID = "137Cd2zzWFgsIreJreokVw-QAPFTZqPSLyOdvBeHuquQ";
-  const SHEET_NAME = "Hoja1"; // cambia si tu hoja tiene otro nombre
-  const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
-  
-  // 🔧 Función que convierte enlaces de Drive al formato visible
-  function convertirLinkDrive(url) {
-    if (!url) return "https://via.placeholder.com/400x200?text=Sin+imagen";
-    // Si ya está en formato directo (uc?export=view), la devuelve igual
-    if (url.includes("uc?export=view")) return url;
-    // Si es un enlace normal de Google Drive (/file/d/.../view), lo convierte
-    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    if (match) {
-      const id = match[1];
-      return `https://drive.google.com/uc?export=view&id=${id}`;
-    }
-    // Si no es de Drive, devuelve la URL original
-    return url;
-  }
-  
-  async function cargarProductos() {
-    try {
-      const res = await fetch(URL);
-      const text = await res.text();
-      const json = JSON.parse(text.substr(47).slice(0, -2));
-      const contenedor = document.getElementById("productos");
-      contenedor.innerHTML = "";
-  
-      json.table.rows.forEach(row => {
-        const producto = row.c[0]?.v || "Sin nombre";
-        const precio = row.c[1]?.v || "—";
-        const stock = row.c[2]?.v ?? "—";
-        const descripcion = row.c[3]?.v || "";
-        const imagenRaw = row.c[4]?.v || "";
-        const imagen = convertirLinkDrive(imagenRaw);
-        const categoria = row.c[5]?.v || "";
-  
-        const agotado = stock <= 0 || stock === "0" ? "out" : "";
-  
-        const card = `
-          <div class="card">
-            <img src="${imagen}" alt="${producto}">
-            <div class="info">
-              <h3>${producto}</h3>
-              <p class="price">$${precio}</p>
-              <p class="stock ${agotado}">${stock > 0 ? "Disponible: " + stock + " kg" : "Agotado"}</p>
-              ${descripcion ? `<p>${descripcion}</p>` : ""}
-              ${categoria ? `<span class="category">${categoria}</span>` : ""}
-            </div>
+const SHEET_ID = "137Cd2zzWFgsIreJreokVw-QAPFTZqPSLyOdvBeHuquQ";
+const SHEET_NAME = "Hoja1"; // Cambiá si tu hoja tiene otro nombre
+const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+
+async function cargarProductos() {
+  try {
+    const res = await fetch(URL);
+    const text = await res.text();
+    const json = JSON.parse(text.substr(47).slice(0, -2));
+    const contenedor = document.getElementById("productos");
+    contenedor.innerHTML = "";
+
+    json.table.rows.forEach(row => {
+      const producto = row.c[0]?.v || "Sin nombre";
+      const precio = row.c[1]?.v || "—";
+      const stock = row.c[2]?.v ?? "—";
+      const descripcion = row.c[3]?.v || "";
+      const imagen = row.c[4]?.v && row.c[4].v !== "[URL]" ? row.c[4].v : "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80";
+      const categoria = row.c[5]?.v || "";
+
+      const agotado = stock <= 0 || stock === "0" ? "out" : "";
+
+      const card = `
+        <div class="card">
+          <img src="${imagen}" alt="${producto}">
+          <div class="info">
+            <h3>${producto}</h3>
+            <p class="price">$${precio}</p>
+            <p class="stock ${agotado}">${stock > 0 ? "Disponible: " + stock + " kg" : "Agotado"}</p>
+            ${descripcion ? `<p>${descripcion}</p>` : ""}
+            ${categoria ? `<span class="category">${categoria}</span>` : ""}
           </div>
-        `;
-        contenedor.innerHTML += card;
+        </div>
+      `;
+      contenedor.innerHTML += card;
+    });
+
+    // Buscador
+    const input = document.getElementById("search");
+    input.addEventListener("input", e => {
+      const term = e.target.value.toLowerCase();
+      document.querySelectorAll(".card").forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(term) ? "block" : "none";
       });
-  
-      // 🔍 Buscador en tiempo real
-      const input = document.getElementById("search");
-      input.addEventListener("input", e => {
-        const term = e.target.value.toLowerCase();
-        document.querySelectorAll(".card").forEach(card => {
-          const text = card.textContent.toLowerCase();
-          card.style.display = text.includes(term) ? "block" : "none";
-        });
-      });
-  
-    } catch (err) {
-      console.error("Error al cargar datos:", err);
-      document.getElementById("productos").innerHTML = "<p>Error al cargar productos.</p>";
-    }
+    });
+
+  } catch (err) {
+    console.error("Error al cargar datos:", err);
+    document.getElementById("productos").innerHTML = "<p>Error al cargar productos.</p>";
   }
-  
-  cargarProductos();
-  </script>  
+}
+
+cargarProductos();
+</script>
 
 </body>
 </html>
