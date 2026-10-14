@@ -67,7 +67,6 @@
     box-shadow: 0 3px 8px rgba(0,0,0,0.15);
     overflow: hidden;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-    position: relative;
   }
 
   .card:hover {
@@ -127,526 +126,76 @@
     padding: 15px;
     font-size: 14px;
   }
-
-  /* ===== NUEVAS SECCIONES (mismo estilo) ===== */
-
-  .update-badge {
-    display: inline-block;
-    margin-top: 10px;
-    background: rgba(255,255,255,0.18);
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 14px;
-  }
-  .update-badge.viejo { background: #d35400; }
-
-  .local-card {
-    background: white;
-    border-radius: 15px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-    margin: 20px;
-    padding: 18px;
-    display: none;
-    gap: 20px;
-    grid-template-columns: 1fr 1fr;
-  }
-  .local-card.visible { display: grid; }
-  .local-card h2 { color: var(--verde-oscuro); margin: 0 0 10px; font-size: 20px; }
-  .local-card p { margin: 6px 0; font-size: 15px; }
-  .local-card iframe {
-    width: 100%; height: 100%; min-height: 200px;
-    border: 0; border-radius: 10px;
-  }
-  @media (max-width: 700px) {
-    .local-card { grid-template-columns: 1fr; }
-  }
-
-  .btn {
-    display: inline-block;
-    background: var(--verde-principal);
-    color: white;
-    border: none;
-    padding: 9px 16px;
-    border-radius: 10px;
-    font-size: 14px;
-    font-family: inherit;
-    cursor: pointer;
-    text-decoration: none;
-    margin: 4px 4px 0 0;
-  }
-  .btn:hover { background: var(--verde-oscuro); }
-  .btn.sec { background: white; color: var(--verde-oscuro); border: 2px solid var(--verde-principal); }
-  .btn.sec:hover { background: var(--beige); }
-
-  .controles {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
-    padding: 0 20px;
-  }
-  .chip {
-    background: white;
-    border: 2px solid var(--verde-principal);
-    color: var(--verde-oscuro);
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-family: inherit;
-    cursor: pointer;
-  }
-  .chip.activo { background: var(--verde-principal); color: white; }
-
-  #orden {
-    display: block;
-    margin: 15px auto 0;
-    padding: 8px 12px;
-    border-radius: 10px;
-    border: 2px solid var(--verde-principal);
-    font-size: 14px;
-    font-family: inherit;
-    background: white;
-  }
-
-  .oferta-tag {
-    position: absolute;
-    top: 10px; left: 10px;
-    background: #d35400;
-    color: white;
-    font-weight: bold;
-    font-size: 13px;
-    padding: 4px 10px;
-    border-radius: 6px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-  }
-
-  .btn-wa {
-    display: inline-block;
-    margin-top: 10px;
-    background: #25d366;
-    color: white;
-    padding: 8px 14px;
-    border-radius: 10px;
-    font-size: 14px;
-    text-decoration: none;
-  }
-  .btn-wa:hover { background: #1ebe5a; }
-
-  .compartir {
-    text-align: center;
-    padding: 10px 20px 25px;
-  }
-  .compartir h2 { color: var(--verde-oscuro); font-size: 20px; margin: 10px 0; }
-
-  .vacio { text-align: center; padding: 30px; grid-column: 1 / -1; }
 </style>
 </head>
 <body>
 
 <header>
-  <h1 id="titulo">🥦 Verdulería Online</h1>
+  <h1>🥦 Verdulería Online</h1>
   <p>Frutas y verduras frescas con precios actualizados automáticamente</p>
-  <span class="update-badge" id="actualizado" style="display:none"></span>
 </header>
-
-<!-- DATOS DEL LOCAL (se completan desde la pestaña "Local") -->
-<section class="local-card" id="local">
-  <div id="local-info"></div>
-  <div id="local-mapa"></div>
-</section>
 
 <input type="text" id="search" placeholder="🔍 Buscar producto (ej: manzana, lechuga, tomate...)">
 
-<div class="controles" id="categorias"></div>
-<select id="orden">
-  <option value="">Ordenar: por defecto</option>
-  <option value="precio-asc">Precio: menor a mayor</option>
-  <option value="precio-desc">Precio: mayor a menor</option>
-  <option value="nombre">Nombre A-Z</option>
-</select>
-
 <div class="grid" id="productos"></div>
-
-<section class="compartir">
-  <h2>Compartir</h2>
-  <button class="btn" id="btn-imagen">📸 Imagen para Status</button>
-  <button class="btn sec" id="btn-copiar">📋 Copiar lista de precios</button>
-  <button class="btn sec" id="btn-qr">⬇️ Descargar QR</button>
-  <button class="btn sec" id="btn-cartel">🖨️ Imprimir cartel con QR</button>
-</section>
-
-<div id="qr-oculto" style="position:absolute;left:-9999px;top:0"></div>
 
 <footer>© 2025 Verdulería Online — Datos actualizados desde Google Sheets</footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-/* ============ CONFIGURACIÓN ============ */
 const SHEET_ID = "137Cd2zzWFgsIreJreokVw-QAPFTZqPSLyOdvBeHuquQ";
-const SHEET_NAME = "Hoja1";   // Pestaña de productos. Cambiá si tiene otro nombre
-const LOCAL_SHEET = "Local";  // Pestaña con los datos del local
+const SHEET_NAME = "Hoja1"; // Cambiá si tu hoja tiene otro nombre
+const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
 
-const base = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
-const URL_PRODUCTOS = `${base}&sheet=${encodeURIComponent(SHEET_NAME)}`;
-const URL_LOCAL = `${base}&headers=0&sheet=${encodeURIComponent(LOCAL_SHEET)}`;
-
-const IMG_DEFAULT = "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80";
-
-/* ============ ESTADO ============ */
-let productos = [];
-let local = {};
-let categoriaActiva = "Todas";
-
-/* ============ UTILIDADES ============ */
-const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-
-async function pedirJSON(url) {
-  const res = await fetch(url + "&t=" + Date.now(), { cache: "no-store" });
-  const text = await res.text();
-  return JSON.parse(text.match(/\{[\s\S]*\}/)[0]);
-}
-
-const fmtPrecio = p => (typeof p === "number" ? p.toLocaleString("es-AR") : p);
-
-function parsearFecha(v) {
-  if (!v) return null;
-  if (typeof v === "string" && v.startsWith("Date(")) {
-    const n = v.match(/\d+/g).map(Number);
-    return new Date(n[0], n[1], n[2], n[3] || 0, n[4] || 0, n[5] || 0);
-  }
-  const d = new Date(v);
-  return isNaN(d) ? null : d;
-}
-
-function interpretarStock(stock) {
-  // Devuelve { agotado, texto }
-  const t = String(stock ?? "").trim().toLowerCase();
-  if (t === "" || t === "—") return { agotado: false, texto: "Consultar disponibilidad" };
-  if (typeof stock === "number" || !isNaN(Number(t))) {
-    const n = Number(t);
-    return n > 0 ? { agotado: false, texto: "Disponible: " + n + " kg" } : { agotado: true, texto: "Agotado" };
-  }
-  if (["agotado", "no", "no hay", "sin stock", "n"].includes(t)) return { agotado: true, texto: "Agotado" };
-  if (["si", "sí", "hay", "en stock", "disponible", "s"].includes(t)) return { agotado: false, texto: "Disponible" };
-  return { agotado: false, texto: String(stock) };
-}
-
-function esSi(v) {
-  return ["si", "sí", "x", "oferta", "1", "true"].includes(String(v ?? "").trim().toLowerCase());
-}
-
-function soloDigitos(s) { return String(s || "").replace(/\D/g, ""); }
-
-/* ============ CARGA ============ */
-async function cargar() {
-  const contenedor = document.getElementById("productos");
+async function cargarProductos() {
   try {
-    const [jp, jl] = await Promise.all([
-      pedirJSON(URL_PRODUCTOS),
-      pedirJSON(URL_LOCAL).catch(() => null)   // si no existe la pestaña Local, sigue igual
-    ]);
+    const res = await fetch(URL);
+    const text = await res.text();
+    const json = JSON.parse(text.substr(47).slice(0, -2));
+    const contenedor = document.getElementById("productos");
+    contenedor.innerHTML = "";
 
-    productos = jp.table.rows.map(row => {
-      const c = row.c || [];
-      const img = c[4]?.v;
-      return {
-        nombre: c[0]?.v || "Sin nombre",
-        precio: c[1]?.v ?? "—",
-        stock: c[2]?.v ?? "",
-        descripcion: c[3]?.v || "",
-        imagen: img && img !== "[URL]" ? img : IMG_DEFAULT,
-        categoria: c[5]?.v || "",
-        oferta: esSi(c[6]?.v)
-      };
+    json.table.rows.forEach(row => {
+      const producto = row.c[0]?.v || "Sin nombre";
+      const precio = row.c[1]?.v || "—";
+      const stock = row.c[2]?.v ?? "—";
+      const descripcion = row.c[3]?.v || "";
+      const imagen = row.c[4]?.v && row.c[4].v !== "[URL]" ? row.c[4].v : "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80";
+      const categoria = row.c[5]?.v || "";
+
+      const agotado = stock <= 0 || stock === "0" ? "out" : "";
+
+      const card = `
+        <div class="card">
+          <img src="${imagen}" alt="${producto}">
+          <div class="info">
+            <h3>${producto}</h3>
+            <p class="price">$${precio}</p>
+            <p class="stock ${agotado}">${stock > 0 ? "Disponible: " + stock + " kg" : "Agotado"}</p>
+            ${descripcion ? `<p>${descripcion}</p>` : ""}
+            ${categoria ? `<span class="category">${categoria}</span>` : ""}
+          </div>
+        </div>
+      `;
+      contenedor.innerHTML += card;
     });
 
-    if (jl && jl.table) {
-      jl.table.rows.forEach(row => {
-        const k = String(row.c?.[0]?.v ?? "").trim().toLowerCase();
-        const v = row.c?.[1]?.v;
-        if (k && v !== null && v !== undefined) local[k] = v;
+    // Buscador
+    const input = document.getElementById("search");
+    input.addEventListener("input", e => {
+      const term = e.target.value.toLowerCase();
+      document.querySelectorAll(".card").forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(term) ? "block" : "none";
       });
-    }
+    });
 
-    pintarLocal();
-    pintarCategorias();
-    render();
   } catch (err) {
     console.error("Error al cargar datos:", err);
-    contenedor.innerHTML = "<p>Error al cargar productos.</p>";
+    document.getElementById("productos").innerHTML = "<p>Error al cargar productos.</p>";
   }
 }
 
-/* ============ DATOS DEL LOCAL + FECHA ============ */
-function textoActualizacion(d) {
-  const ahora = new Date();
-  const hora = d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
-  const inicio = x => new Date(x.getFullYear(), x.getMonth(), x.getDate());
-  const dias = Math.round((inicio(ahora) - inicio(d)) / 86400000);
-  if (dias <= 0) return { t: `Precios actualizados hoy ${hora}`, viejo: false };
-  if (dias === 1) return { t: `Precios actualizados ayer ${hora}`, viejo: false };
-  const dia = d.toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "numeric" });
-  return { t: `Precios del ${dia}`, viejo: true };
-}
-
-function pintarLocal() {
-  if (local.nombre) {
-    document.getElementById("titulo").textContent = "🥦 " + local.nombre;
-    document.title = "🥦 " + local.nombre + " - Precios y stock";
-  }
-
-  const fecha = parsearFecha(local.ultima_actualizacion);
-  if (fecha) {
-    const { t, viejo } = textoActualizacion(fecha);
-    const b = document.getElementById("actualizado");
-    b.textContent = "🕒 " + t;
-    b.classList.toggle("viejo", viejo);
-    b.style.display = "inline-block";
-  }
-
-  const tieneInfo = local.direccion || local.horarios || local.telefono || local.whatsapp || local.pagos;
-  if (!tieneInfo) return;
-
-  let html = "<h2>📍 Datos del local</h2>";
-  if (local.direccion) html += `<p><strong>Dirección:</strong> ${esc(local.direccion)}</p>`;
-  if (local.horarios) html += `<p><strong>Horarios:</strong> ${esc(local.horarios).replace(/\n|\|/g, "<br>")}</p>`;
-  if (local.pagos) html += `<p><strong>Medios de pago:</strong> ${esc(local.pagos)}</p>`;
-  if (local.telefono) html += `<p><strong>Teléfono:</strong> ${esc(local.telefono)}</p>`;
-  html += "<div>";
-  if (local.telefono) html += `<a class="btn" href="tel:${soloDigitos(local.telefono)}">📞 Llamar</a>`;
-  if (local.whatsapp) html += `<a class="btn btn-wa" style="margin-top:4px" target="_blank" rel="noopener" href="https://wa.me/${soloDigitos(local.whatsapp)}">💬 WhatsApp</a>`;
-  html += "</div>";
-  document.getElementById("local-info").innerHTML = html;
-
-  if (local.direccion) {
-    const q = encodeURIComponent(local.direccion);
-    document.getElementById("local-mapa").innerHTML =
-      `<iframe loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=${q}&output=embed"></iframe>`;
-  }
-  document.getElementById("local").classList.add("visible");
-}
-
-/* ============ CATEGORÍAS ============ */
-function pintarCategorias() {
-  const cats = [...new Set(productos.map(p => p.categoria).filter(Boolean))];
-  const cont = document.getElementById("categorias");
-  if (cats.length === 0) { cont.innerHTML = ""; return; }
-  const todas = ["Todas", ...cats];
-  cont.innerHTML = todas.map(c =>
-    `<button class="chip ${c === categoriaActiva ? "activo" : ""}" data-cat="${esc(c)}">${esc(c)}</button>`
-  ).join("");
-  cont.querySelectorAll(".chip").forEach(b => {
-    b.addEventListener("click", () => {
-      categoriaActiva = b.dataset.cat;
-      pintarCategorias();
-      render();
-    });
-  });
-}
-
-/* ============ RENDER ============ */
-function productosFiltrados() {
-  const term = document.getElementById("search").value.toLowerCase();
-  const orden = document.getElementById("orden").value;
-
-  let lista = productos.filter(p => {
-    const texto = (p.nombre + " " + p.descripcion + " " + p.categoria).toLowerCase();
-    return texto.includes(term) && (categoriaActiva === "Todas" || p.categoria === categoriaActiva);
-  });
-
-  const num = p => (typeof p.precio === "number" ? p.precio : Infinity);
-  if (orden === "precio-asc") lista.sort((a, b) => num(a) - num(b));
-  if (orden === "precio-desc") lista.sort((a, b) => (num(b) === Infinity ? -1 : num(b)) - (num(a) === Infinity ? -1 : num(a)));
-  if (orden === "nombre") lista.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
-  return lista;
-}
-
-function render() {
-  const cont = document.getElementById("productos");
-  const lista = productosFiltrados();
-  const wa = soloDigitos(local.whatsapp);
-
-  if (lista.length === 0) {
-    cont.innerHTML = '<p class="vacio">No encontramos productos 😕</p>';
-    return;
-  }
-
-  cont.innerHTML = lista.map(p => {
-    const s = interpretarStock(p.stock);
-    const msg = encodeURIComponent(`Hola, quería consultar por ${p.nombre}`);
-    return `
-      <div class="card">
-        ${p.oferta ? '<span class="oferta-tag">🔥 OFERTA</span>' : ""}
-        <img src="${esc(p.imagen)}" alt="${esc(p.nombre)}" loading="lazy">
-        <div class="info">
-          <h3>${esc(p.nombre)}</h3>
-          <p class="price">$${esc(fmtPrecio(p.precio))}</p>
-          <p class="stock ${s.agotado ? "out" : ""}">${esc(s.texto)}</p>
-          ${p.descripcion ? `<p>${esc(p.descripcion)}</p>` : ""}
-          ${p.categoria ? `<span class="category">${esc(p.categoria)}</span>` : ""}
-          ${wa && !s.agotado ? `<br><a class="btn-wa" target="_blank" rel="noopener" href="https://wa.me/${wa}?text=${msg}">💬 Consultar por WhatsApp</a>` : ""}
-        </div>
-      </div>`;
-  }).join("");
-}
-
-document.getElementById("search").addEventListener("input", render);
-document.getElementById("orden").addEventListener("change", render);
-
-/* ============ LISTA PARA COPIAR ============ */
-function listaDisponible() {
-  return productos.filter(p => !interpretarStock(p.stock).agotado);
-}
-
-document.getElementById("btn-copiar").addEventListener("click", async () => {
-  const hoy = new Date().toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "numeric" });
-  let txt = `🥦 *${local.nombre || "Verdulería"}* — precios del ${hoy}\n\n`;
-  listaDisponible().forEach(p => {
-    txt += `${p.oferta ? "🔥 " : "• "}${p.nombre}: $${fmtPrecio(p.precio)}\n`;
-  });
-  txt += `\nMirá todo acá: ${location.href.split("?")[0]}`;
-  try {
-    await navigator.clipboard.writeText(txt);
-    alert("¡Lista copiada! Pegala en WhatsApp.");
-  } catch (e) {
-    prompt("Copiá la lista:", txt);
-  }
-});
-
-/* ============ IMAGEN PARA WHATSAPP STATUS (9:16) ============ */
-function recortar(ctx, texto, ancho) {
-  let t = String(texto);
-  while (ctx.measureText(t).width > ancho && t.length > 1) t = t.slice(0, -1);
-  return t.length < String(texto).length ? t.trimEnd() + "…" : t;
-}
-
-function generarImagen() {
-  const W = 1080, H = 1920;
-  const c = document.createElement("canvas");
-  c.width = W; c.height = H;
-  const ctx = c.getContext("2d");
-  const fuente = "Poppins, Arial, sans-serif";
-
-  // Fondo
-  ctx.fillStyle = "#fdf6ec";
-  ctx.fillRect(0, 0, W, H);
-
-  // Encabezado
-  const g = ctx.createLinearGradient(0, 0, W, 0);
-  g.addColorStop(0, "#2c7031"); g.addColorStop(1, "#3fa34d");
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, W, 330);
-
-  ctx.fillStyle = "#fff";
-  ctx.textAlign = "center";
-  ctx.font = `bold 72px ${fuente}`;
-  ctx.fillText(recortar(ctx, "🥦 " + (local.nombre || "Verdulería"), W - 100), W / 2, 150);
-  ctx.font = `300 44px ${fuente}`;
-  const hoy = new Date().toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });
-  ctx.fillText("Precios del " + hoy, W / 2, 230);
-  ctx.font = `34px ${fuente}`;
-  ctx.fillText("Frutas y verduras frescas", W / 2, 290);
-
-  // Selección: ofertas primero, luego el resto disponible
-  const disp = listaDisponible();
-  const lista = [...disp.filter(p => p.oferta), ...disp.filter(p => !p.oferta)].slice(0, 12);
-
-  const inicioY = 400, alto = 100;
-  lista.forEach((p, i) => {
-    const y = inicioY + i * alto;
-    // tarjeta
-    ctx.fillStyle = "#fff";
-    ctx.shadowColor = "rgba(0,0,0,0.12)"; ctx.shadowBlur = 8; ctx.shadowOffsetY = 2;
-    ctx.beginPath();
-    ctx.roundRect(50, y, W - 100, alto - 14, 18);
-    ctx.fill();
-    ctx.shadowColor = "transparent";
-
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#2c7031";
-    ctx.font = `600 38px ${fuente}`;
-    ctx.fillText(recortar(ctx, (p.oferta ? "🔥 " : "") + p.nombre, 620), 85, y + 58);
-
-    ctx.textAlign = "right";
-    ctx.fillStyle = "#d35400";
-    ctx.font = `bold 40px ${fuente}`;
-    ctx.fillText("$" + fmtPrecio(p.precio), W - 85, y + 58);
-  });
-
-  // Pie
-  ctx.textAlign = "center";
-  ctx.fillStyle = "#2c7031";
-  ctx.font = `bold 40px ${fuente}`;
-  let yPie = H - 190;
-  if (local.direccion) { ctx.fillText(recortar(ctx, "📍 " + local.direccion, W - 100), W / 2, yPie); yPie += 60; }
-  if (local.whatsapp) { ctx.fillText("💬 WhatsApp: " + local.whatsapp, W / 2, yPie); yPie += 60; }
-  ctx.font = `30px ${fuente}`;
-  ctx.fillStyle = "#666";
-  ctx.fillText(location.host + location.pathname, W / 2, H - 30);
-
-  return c;
-}
-
-document.getElementById("btn-imagen").addEventListener("click", () => {
-  const canvas = generarImagen();
-  canvas.toBlob(async blob => {
-    const file = new File([blob], "precios-del-dia.png", { type: "image/png" });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: "Precios del día" }); return; } catch (e) { /* cancelado: se descarga */ }
-    }
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "precios-del-dia.png";
-    a.click();
-  }, "image/png");
-});
-
-/* ============ QR ============ */
-function urlPagina() { return location.href.split("#")[0].split("?")[0]; }
-
-function qrDataURL() {
-  return new Promise(resolve => {
-    const cont = document.getElementById("qr-oculto");
-    cont.innerHTML = "";
-    new QRCode(cont, { text: urlPagina(), width: 600, height: 600, correctLevel: QRCode.CorrectLevel.M });
-    setTimeout(() => {
-      const canvas = cont.querySelector("canvas");
-      resolve(canvas ? canvas.toDataURL("image/png") : cont.querySelector("img").src);
-    }, 100);
-  });
-}
-
-document.getElementById("btn-qr").addEventListener("click", async () => {
-  const a = document.createElement("a");
-  a.href = await qrDataURL();
-  a.download = "qr-verduleria.png";
-  a.click();
-});
-
-document.getElementById("btn-cartel").addEventListener("click", async () => {
-  const qr = await qrDataURL();
-  const nombre = esc(local.nombre || "Verdulería");
-  const w = window.open("", "_blank");
-  w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Cartel QR</title>
-    <style>
-      @page { size: A4; margin: 0; }
-      body { margin:0; font-family: Poppins, Arial, sans-serif; text-align:center; background:#fdf6ec; color:#2c7031; }
-      .top { background: linear-gradient(90deg,#2c7031,#3fa34d); color:#fff; padding:50px 20px; }
-      .top h1 { margin:0; font-size:56px; }
-      h2 { font-size:44px; margin:50px 30px 10px; }
-      img { width:420px; height:420px; margin:20px auto; display:block; background:#fff; padding:20px; border-radius:20px; }
-      p { font-size:26px; color:#555; margin:10px; }
-    </style></head><body>
-    <div class="top"><h1>🥦 ${nombre}</h1></div>
-    <h2>Mirá los precios de hoy escaneando acá</h2>
-    <img src="${qr}" alt="QR">
-    <p>Precios y stock actualizados todos los días</p>
-    <script>window.onload = () => setTimeout(() => window.print(), 300);<\/script>
-    </body></html>`);
-  w.document.close();
-});
-
-cargar();
+cargarProductos();
 </script>
 
 </body>
